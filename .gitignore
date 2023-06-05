@@ -1,3 +1,4 @@
 .vscode
 __pycache__
 boot_out.txt
+settings.toml
