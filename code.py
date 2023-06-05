@@ -27,10 +27,10 @@ hdmi_inputs = [{"input": "macstudio", "color": 0x0000FF},
                {"input": "nintendoswitch", "color": 0xFF0000},
                {"input": "roku", "color": 0x8800ff},
                {"input": "macmini", "color": 0xff2800},
-               {"input": "snes", "color": 0xfdf5e6},
+               {"input": "snes", "color": 0x32ffff},
                {"input": "ipad", "color": 0x00ff00},
                {"input": "rpi", "color": 0xff004c},
-               {"input": "extra", "color": 0xFFFFFF}
+               {"input": "extra", "color": 0x858585}
 ]
 
 i2c_bus = board.STEMMA_I2C()
