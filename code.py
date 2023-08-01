@@ -1,11 +1,13 @@
-import board
-from adafruit_neokey.neokey1x4 import NeoKey1x4
 import ipaddress
-import ssl
-import wifi
-import socketpool
-import adafruit_requests
 import os
+import ssl
+
+import adafruit_requests
+import board
+import socketpool
+import wifi
+from adafruit_neokey.neokey1x4 import NeoKey1x4
+from digitalio import DigitalInOut, Direction, Pull
 
 # CircuitPython code for the Adafruit NeoKey 1x4 and QT Py ESP32-S3
 # When a button is pressed this code will send a HTTP get request to a web service that switches the hdmi input for a monitor
@@ -40,8 +42,16 @@ print("Connected to WiFi!")
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-
 neokey = NeoKey1x4(i2c_bus, addr=0x30)
+# set brightness
+# neokey.pixels.brightness = 0.1
+
+# setup potentiometer switch
+potentiometer_switch = DigitalInOut(board.A1)
+potentiometer_switch.direction = Direction.INPUT
+potentiometer_switch.pull = Pull.UP
+
+
 
 key_0_state = False
 key_1_state = False
@@ -73,42 +83,70 @@ def send_webservice_request(button_number):
     except Exception as e:
         print(e)
 
+
+def turn_off_buttons():
+    global current_collection_set
+    global key_0_state
+    global key_1_state
+    global key_2_state
+    global key_3_state
+
+    neokey.pixels[0] = 0x0
+    neokey.pixels[1] = 0x0
+    neokey.pixels[2] = 0x0
+    neokey.pixels[3] = 0x0
+
+    key_0_state = False
+    key_1_state = False
+    key_2_state = False
+    key_3_state = False
+    
+    current_collection_set = 0
+
+    while potentiometer_switch.value:
+        pass
+    
+    change_button_collection_colors()
+
 change_button_collection_colors()
 
 while True:
-    # debouncing code to prevent multiple button presses
-    if not neokey[0] and key_0_state:
-        key_0_state = False
-        neokey.pixels[0] = 0x0
-    if not neokey[1] and key_1_state:
-        key_1_state = False
-        # neokey.pixels[1] = 0x0
-    if not neokey[2] and key_2_state:
-        key_2_state = False
-        # neokey.pixels[2] = 0x0
-    if not neokey[3] and key_3_state:
-        key_3_state = False
-        # neokey.pixels[3] = 0x0
+    if not potentiometer_switch.value:
+        # debouncing code to prevent multiple button presses
+        if not neokey[0] and key_0_state:
+            key_0_state = False
+            neokey.pixels[0] = 0x0
+        if not neokey[1] and key_1_state:
+            key_1_state = False
+            # neokey.pixels[1] = 0x0
+        if not neokey[2] and key_2_state:
+            key_2_state = False
+            # neokey.pixels[2] = 0x0
+        if not neokey[3] and key_3_state:
+            key_3_state = False
+            # neokey.pixels[3] = 0x0
 
 
-    if neokey[0] and not key_0_state:
-        print("Button 0")
-        neokey.pixels[0] = 0xFFFFFF
-        key_0_state = True
-        current_collection_set += 3
-        change_button_collection_colors()
+        if neokey[0] and not key_0_state:
+            print("Button 0")
+            neokey.pixels[0] = 0xFFFFFF
+            key_0_state = True
+            current_collection_set += 3
+            change_button_collection_colors()
 
-    if neokey[1] and not key_1_state:
-        print("Button 1")
-        send_webservice_request(1)
-        key_1_state = True
+        if neokey[1] and not key_1_state:
+            print("Button 1")
+            send_webservice_request(1)
+            key_1_state = True
 
-    if neokey[2] and not key_2_state:
-        print("Button 2")
-        send_webservice_request(2)
-        key_2_state = True
+        if neokey[2] and not key_2_state:
+            print("Button 2")
+            send_webservice_request(2)
+            key_2_state = True
 
-    if neokey[3] and not key_3_state:
-        print("Button 3")
-        send_webservice_request(3)
-        key_3_state = True
+        if neokey[3] and not key_3_state:
+            print("Button 3")
+            send_webservice_request(3)
+            key_3_state = True
+    else:
+        turn_off_buttons()
