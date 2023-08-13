@@ -1,8 +1,8 @@
-import ipaddress
 import os
 import ssl
 
 import adafruit_requests
+import analogio
 import board
 import socketpool
 import wifi
@@ -36,22 +36,19 @@ hdmi_inputs = [{"input": "macstudio", "color": 0x0000FF},
 ]
 
 i2c_bus = board.STEMMA_I2C()
-print("Connecting to WiFi...")
-wifi.radio.connect(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
-print("Connected to WiFi!")
-pool = socketpool.SocketPool(wifi.radio)
-requests = adafruit_requests.Session(pool, ssl.create_default_context())
-
 neokey = NeoKey1x4(i2c_bus, addr=0x30)
-# set brightness
-# neokey.pixels.brightness = 0.1
+
+MIN_BRIGHTNESS = 0.02
+MAX_BRIGHTNESS = .9
+
+MAX_PHOTOCELL_VALUE = 3000
+MIN_PHOTOCELL_VALUE = 0
 
 # setup potentiometer switch
 potentiometer_switch = DigitalInOut(board.A1)
 potentiometer_switch.direction = Direction.INPUT
 potentiometer_switch.pull = Pull.UP
-
-
+photocell = analogio.AnalogIn(board.A3)
 
 key_0_state = False
 key_1_state = False
@@ -59,6 +56,32 @@ key_2_state = False
 key_3_state = False
 
 current_collection_set = 0
+
+# scale pixel brightness based on photocell value
+# photocell value is between 0 and 3000
+# pixel brightness is between 0.02 and 1
+# pixel brightness will be 0.02 when photocell value is 0
+# pixel brightness will be 1 when photocell value is 3000
+# pixel brightness will be 0.51 when photocell value is 1500
+def scale_brightness(photocell_value):
+    return (photocell_value / MAX_PHOTOCELL_VALUE) * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) + MIN_BRIGHTNESS
+
+# set brightness
+neokey.pixels.brightness = scale_brightness(photocell.value)
+
+
+# turn the first pixel red to indicate that the device is booting up
+neokey.pixels[0] = 0xFF0000
+
+print("Connecting to WiFi...")
+wifi.radio.connect(os.getenv("CIRCUITPY_WIFI_SSID"), os.getenv("CIRCUITPY_WIFI_PASSWORD"))
+print("Connected to WiFi!")
+pool = socketpool.SocketPool(wifi.radio)
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
+
+# turn the first pixel off to indicate that the device is done booting up
+neokey.pixels[0] = 0x0
+
 
 def change_button_collection_colors():
     global current_collection_set
@@ -69,7 +92,8 @@ def change_button_collection_colors():
     for i in range(0,3):
         neokey.pixels[i+1] = hdmi_inputs[current_collection_set + i]["color"]
         print(f"button: {i+1} to input {hdmi_inputs[current_collection_set + i]['input']}")
-
+    
+    print(f"photocell = {photocell.value}")
 
 def send_webservice_request(button_number):
     global current_collection_set
@@ -112,6 +136,8 @@ change_button_collection_colors()
 
 while True:
     if not potentiometer_switch.value:
+        neokey.pixels.brightness = scale_brightness(photocell.value)
+
         # debouncing code to prevent multiple button presses
         if not neokey[0] and key_0_state:
             key_0_state = False
