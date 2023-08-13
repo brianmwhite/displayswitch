@@ -1,5 +1,6 @@
 import os
 import ssl
+import time
 
 import adafruit_requests
 import analogio
@@ -38,9 +39,11 @@ hdmi_inputs = [{"input": "macstudio", "color": 0x0000FF},
 i2c_bus = board.STEMMA_I2C()
 neokey = NeoKey1x4(i2c_bus, addr=0x30)
 
+# set the brightness range of the pixels
 MIN_BRIGHTNESS = 0.02
 MAX_BRIGHTNESS = .9
 
+# set the photocell ranges of values
 MAX_PHOTOCELL_VALUE = 3000
 MIN_PHOTOCELL_VALUE = 0
 
@@ -79,7 +82,7 @@ print("Connected to WiFi!")
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-# turn the first pixel off to indicate that the device is done booting up
+# turn the first pixel off to indicate that the device is done booting up and has connected to wifi
 neokey.pixels[0] = 0x0
 
 
@@ -102,11 +105,17 @@ def send_webservice_request(button_number):
     print(f"button_number: {button_number}")
     print(f"item_number: {item_number}")
     print(f"Sending request to {web_service_base_url}/{hdmi_inputs[item_number]['input']}")
+
+    # set the first pixel to white to indicate that the request is being sent
+    neokey.pixels[0] = 0xFFFFFF
+    
     try:
         requests.get(f"{web_service_base_url}/{hdmi_inputs[item_number]['input']}")
     except Exception as e:
         print(e)
 
+    # set the first pixel to off to indicate that the request is done being sent
+    neokey.pixels[0] = 0x0
 
 def turn_off_buttons():
     global current_collection_set
@@ -132,9 +141,15 @@ def turn_off_buttons():
     
     change_button_collection_colors()
 
+
+# main loop
+
 change_button_collection_colors()
 
 while True:
+    # add a short sleep to prevent the device from locking up
+    time.sleep(0.01)
+
     if not potentiometer_switch.value:
         neokey.pixels.brightness = scale_brightness(photocell.value)
 
