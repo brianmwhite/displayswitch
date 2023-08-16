@@ -11,19 +11,12 @@ import wifi
 from adafruit_neokey.neokey1x4 import NeoKey1x4
 from digitalio import DigitalInOut, Direction, Pull
 
-try:
-    storage.remount("/", readonly=False)
-except RuntimeError as e:
-    print(e)
-    pass
 
 def log_error_messages(message):
     try:
         with open("/error_log.txt", "a") as error_log:
             print(message)
-            # build timestamp to include in log, should look like: 2021-10-17 12:00:00
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            error_log.write(f"{timestamp}: {message}\n")
+            error_log.write(f"{message}\n")
             error_log.flush()
     except RuntimeError as re:
         print(re)
@@ -40,7 +33,7 @@ def log_error_messages(message):
 # when the neokey[0] button is pressed again it will switch buttons 1,2,3 to a different set of hdmi inputs
 # each hdmi input will have a different color assigned to the neokey.pixels[1-3] buttons
 
-web_service_base_url = f"https://internal.thirdember.com/api/hdmiswitch"
+web_service_base_url = f"https://192.168.7.97/api/hdmiswitch"
 
 # a collection of hdmi input variables that has 9 entries. each entry should have two values a string and a color
 # the string is the hdmi input that will be sent to the web service
