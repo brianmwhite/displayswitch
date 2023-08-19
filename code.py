@@ -164,7 +164,7 @@ change_button_collection_colors()
 
 while True:
     # add a short sleep to prevent the device from locking up
-    time.sleep(0.01)
+    time.sleep(0.05)
 
     if not potentiometer_switch.value:
         neokey.pixels.brightness = scale_brightness(photocell.value)
