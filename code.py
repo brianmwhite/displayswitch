@@ -33,7 +33,7 @@ def log_error_messages(message):
 # when the neokey[0] button is pressed again it will switch buttons 1,2,3 to a different set of hdmi inputs
 # each hdmi input will have a different color assigned to the neokey.pixels[1-3] buttons
 
-web_service_base_url = f"https://192.168.7.97/api/hdmiswitch"
+web_service_base_url = f"http://192.168.7.97:5015/hdmiswitch"
 
 # a collection of hdmi input variables that has 9 entries. each entry should have two values a string and a color
 # the string is the hdmi input that will be sent to the web service
