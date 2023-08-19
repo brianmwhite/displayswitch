@@ -59,7 +59,7 @@ MIN_BRIGHTNESS = 0.02
 MAX_BRIGHTNESS = .9
 
 # set the photocell ranges of values
-MAX_PHOTOCELL_VALUE = 3000
+MAX_PHOTOCELL_VALUE = 2000
 MIN_PHOTOCELL_VALUE = 0
 
 # setup potentiometer switch
@@ -82,7 +82,16 @@ current_collection_set = 0
 # pixel brightness will be 1 when photocell value is 3000
 # pixel brightness will be 0.51 when photocell value is 1500
 def scale_brightness(photocell_value):
-    return (photocell_value / MAX_PHOTOCELL_VALUE) * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) + MIN_BRIGHTNESS
+    actual_percent = (photocell_value / MAX_PHOTOCELL_VALUE) * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) + MIN_BRIGHTNESS
+    # round to nearest tenth
+    rounded_percent = round(actual_percent, 1)
+
+    if rounded_percent > MAX_BRIGHTNESS:
+        rounded_percent = MAX_BRIGHTNESS
+    elif rounded_percent < MIN_BRIGHTNESS:
+        rounded_percent = MIN_BRIGHTNESS
+    
+    return rounded_percent
 
 # set brightness
 neokey.pixels.brightness = scale_brightness(photocell.value)
@@ -162,12 +171,30 @@ def turn_off_buttons():
 
 change_button_collection_colors()
 
+BRIGHTNESS_INTERVAL_SECONDS = 1
+last_brightness_check = None
+prior_brightness = None
+
 while True:
     # add a short sleep to prevent the device from locking up
     time.sleep(0.05)
 
     if not potentiometer_switch.value:
-        neokey.pixels.brightness = scale_brightness(photocell.value)
+        if (
+            last_brightness_check is None
+            or time.monotonic() > last_brightness_check + BRIGHTNESS_INTERVAL_SECONDS
+        ):
+            new_brightness = scale_brightness(photocell.value)
+            
+            change_brightness = False
+
+            if new_brightness != prior_brightness:
+                neokey.pixels.brightness = new_brightness
+                prior_brightness = new_brightness
+                change_brightness = True
+
+            last_brightness_check = time.monotonic()
+            print(f"photocell = {photocell.value} | brightness = {new_brightness} | change_brightness = {change_brightness}")
 
         # debouncing code to prevent multiple button presses
         if not neokey[0] and key_0_state:
