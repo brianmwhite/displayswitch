@@ -12,18 +12,18 @@ from adafruit_neokey.neokey1x4 import NeoKey1x4
 from digitalio import DigitalInOut, Direction, Pull
 
 
-def log_error_messages(message):
-    try:
-        with open("/error_log.txt", "a") as error_log:
-            print(message)
-            error_log.write(f"{message}\n")
-            error_log.flush()
-    except RuntimeError as re:
-        print(re)
-        # ignore
-        pass
-    except Exception as e:
-        print(e)
+# def log_error_messages(message):
+#     try:
+#         with open("/error_log.txt", "a") as error_log:
+#             print(message)
+#             error_log.write(f"{message}\n")
+#             error_log.flush()
+#     except RuntimeError as re:
+#         print(re)
+#         # ignore
+#         pass
+#     except Exception as e:
+#         print(e)
 
 # CircuitPython code for the Adafruit NeoKey 1x4 and QT Py ESP32-S3
 # When a button is pressed this code will send a HTTP get request to a web service that switches the hdmi input for a monitor
@@ -118,7 +118,8 @@ def send_webservice_request(button_number):
     item_number = current_collection_set + (button_number - 1)
     print(f"button_number: {button_number}")
     print(f"item_number: {item_number}")
-    log_error_messages(f"Sending request to {web_service_base_url}/{hdmi_inputs[item_number]['input']}")
+    # log_error_messages(f"Sending request to {web_service_base_url}/{hdmi_inputs[item_number]['input']}")
+    print(f"Sending request to {web_service_base_url}/{hdmi_inputs[item_number]['input']}")
 
     # set the first pixel to white to indicate that the request is being sent
     neokey.pixels[0] = 0xFFFFFF
@@ -129,7 +130,7 @@ def send_webservice_request(button_number):
         neokey.pixels[0] = 0x0
     except Exception as e:
         neokey.pixels[0] = 0xFF0000
-        log_error_messages(e)
+        # log_error_messages(e)
         print(e)
 
 def turn_off_buttons():
