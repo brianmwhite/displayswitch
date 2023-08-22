@@ -74,6 +74,8 @@ key_2_state = False
 key_3_state = False
 
 current_collection_set = 0
+potentiometer_switch_state_changed = False
+potentiometer_switch_last_state = potentiometer_switch.value
 
 # scale pixel brightness based on photocell value
 # photocell value is between 0 and 3000
@@ -177,7 +179,11 @@ prior_brightness = None
 
 while True:
     # add a short sleep to prevent the device from locking up
-    time.sleep(0.05)
+    if potentiometer_switch_last_state != potentiometer_switch.value:
+        potentiometer_switch_last_state = potentiometer_switch.value
+        potentiometer_switch_state_changed = True
+    else:
+        potentiometer_switch_state_changed = False
 
     if not potentiometer_switch.value:
         if (
@@ -232,5 +238,8 @@ while True:
             print("Button 3")
             send_webservice_request(3)
             key_3_state = True
-    else:
+    # if the potentiometer switch is turned off then turn off all the buttons
+    # only if the state just changed, we don't want to continuously turn them off
+    elif potentiometer_switch.value and potentiometer_switch_state_changed:
+        print("switch off, turning off pixels")
         turn_off_buttons()
