@@ -56,7 +56,7 @@ neokey = NeoKey1x4(i2c_bus, addr=0x30)
 
 # set the brightness range of the pixels
 MIN_BRIGHTNESS = 0.02
-MAX_BRIGHTNESS = .9
+MAX_BRIGHTNESS = .8
 
 # set the photocell ranges of values
 MAX_PHOTOCELL_VALUE = 2000
@@ -99,7 +99,7 @@ def scale_brightness(photocell_value):
 
 # set brightness
 # neokey.pixels.brightness = scale_brightness(photocell.value)
-neokey.pixels.brightness = 1.0
+neokey.pixels.brightness = .8
 
 
 # turn the first pixel red to indicate that the device is booting up
