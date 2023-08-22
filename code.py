@@ -74,6 +74,7 @@ key_2_state = False
 key_3_state = False
 
 current_collection_set = 0
+
 potentiometer_switch_state_changed = False
 potentiometer_switch_last_state = potentiometer_switch.value
 
@@ -86,7 +87,8 @@ potentiometer_switch_last_state = potentiometer_switch.value
 def scale_brightness(photocell_value):
     actual_percent = (photocell_value / MAX_PHOTOCELL_VALUE) * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) + MIN_BRIGHTNESS
     # round to nearest tenth
-    rounded_percent = round(actual_percent, 1)
+    # rounded_percent = round(actual_percent, 1)
+    rounded_percent = actual_percent
 
     if rounded_percent > MAX_BRIGHTNESS:
         rounded_percent = MAX_BRIGHTNESS
@@ -96,7 +98,8 @@ def scale_brightness(photocell_value):
     return rounded_percent
 
 # set brightness
-neokey.pixels.brightness = scale_brightness(photocell.value)
+# neokey.pixels.brightness = scale_brightness(photocell.value)
+neokey.pixels.brightness = 1.0
 
 
 # turn the first pixel red to indicate that the device is booting up
@@ -173,12 +176,13 @@ def turn_off_buttons():
 
 change_button_collection_colors()
 
-BRIGHTNESS_INTERVAL_SECONDS = 1
+BRIGHTNESS_INTERVAL_SECONDS = 0.1
 last_brightness_check = None
 prior_brightness = None
 
 while True:
     # add a short sleep to prevent the device from locking up
+    # time.sleep(0.07)
     if potentiometer_switch_last_state != potentiometer_switch.value:
         potentiometer_switch_last_state = potentiometer_switch.value
         potentiometer_switch_state_changed = True
@@ -186,22 +190,28 @@ while True:
         potentiometer_switch_state_changed = False
 
     if not potentiometer_switch.value:
-        if (
-            last_brightness_check is None
-            or time.monotonic() > last_brightness_check + BRIGHTNESS_INTERVAL_SECONDS
-        ):
-            new_brightness = scale_brightness(photocell.value)
+        # if (
+        #     last_brightness_check is None
+        #     or time.monotonic() > last_brightness_check + BRIGHTNESS_INTERVAL_SECONDS
+        # ):
+        #     new_brightness = scale_brightness(photocell.value)
             
-            change_brightness = False
+        #     change_brightness = False
 
-            if new_brightness != prior_brightness:
-                neokey.pixels.brightness = new_brightness
-                prior_brightness = new_brightness
-                change_brightness = True
+        #     if new_brightness != prior_brightness:
+        #         neokey.pixels.brightness = new_brightness
+        #         prior_brightness = new_brightness
+        #         change_brightness = True
 
-            last_brightness_check = time.monotonic()
-            print(f"photocell = {photocell.value} | brightness = {new_brightness} | change_brightness = {change_brightness}")
+        #     last_brightness_check = time.monotonic()
+        #     print(f"photocell = {photocell.value} | brightness = {new_brightness} | change_brightness = {change_brightness}")
 
+        # # every one minute set the first neopixel to a dark gray for a partial second to make sure things stay running
+        # if time.monotonic() % 60 < 0.01:
+        #     neokey.pixels[0] = 0x111111
+        # else:
+        #     neokey.pixels[0] = 0x0
+        
         # debouncing code to prevent multiple button presses
         if not neokey[0] and key_0_state:
             key_0_state = False
