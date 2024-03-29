@@ -194,6 +194,12 @@ BRIGHTNESS_INTERVAL_SECONDS = 0.1
 last_brightness_check = None
 prior_brightness = None
 
+# check if the switch is off when starting up, otherwise leds will be on
+# but nothing will happen when you press a button
+if potentiometer_switch.value:
+    print("switch off, turning off pixels")
+    turn_off_buttons()
+
 while True:
     # add a short sleep to prevent the device from locking up
     # time.sleep(0.07)
